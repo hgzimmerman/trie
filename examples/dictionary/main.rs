@@ -11,6 +11,7 @@ fn main() -> io::Result<()> {
         .lines()
         .map(|l| l.unwrap())
         .filter_map(|l| {
+            // Grab the first entry in the csv.
             l.split(",") // Csv
                 .next() // First element
                 .map(|s| {

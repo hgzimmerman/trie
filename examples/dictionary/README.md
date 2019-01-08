@@ -1,0 +1,1 @@
+Run `cargo run --example dictionary` from this directory.
