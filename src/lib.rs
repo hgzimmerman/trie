@@ -21,6 +21,8 @@ struct TrieNode {
 }
 
 impl TrieNode {
+
+    /// Returns an iterator of strings that can be completed from the given sample.
     fn complete_word_iter(self, mut word: String) -> Box<Iterator<Item = String>> {
         word.push(self.value);
         let mut vec = Vec::new();
@@ -37,6 +39,7 @@ impl TrieNode {
         )
     }
 
+    /// Returns a vector of strings that can be completed from the given sample.
     fn complete_word(&self, mut word: String) -> Vec<String> {
         word.push(self.value);
         let mut vec = Vec::new();
@@ -49,7 +52,7 @@ impl TrieNode {
         })
     }
 
-    /// the returning bool value indicates if the parent should be deleted.
+    /// The returning bool value indicates if the parent should be deleted.
     fn remove_word(&mut self, mut chars: Chars) -> (ShouldDelete, DeletionTargetFound) {
         let character = chars.next();
         if let Some(character) = character {
@@ -141,11 +144,13 @@ impl Trie {
                     current_node = node.children.last_mut();
                 }
             } else {
-                panic!("yeeet")
+                panic!("the character should be set")
             }
         }
 
-        current_node.unwrap().is_word = true;
+        if let Some(node) = current_node {
+            node.is_word = true;
+        }
     }
 
     /// Given a string, this method will return a boolean indicating if the trie contains the string.
@@ -288,30 +293,41 @@ mod tests {
     }
 
     #[test]
-    fn insert() {
+    fn contains_a_string() {
+        let trie = Trie::new();
+        assert!(!trie.contains("a"))
+    }
+
+    #[test]
+    fn contains_empty_string() {
+        let trie = Trie::new();
+        assert!(!trie.contains(""))
+    }
+
+    #[test]
+    fn insert_single_letter() {
         let mut trie = Trie::new();
         trie.insert("a");
         assert!(trie.contains("a"))
     }
     #[test]
-    fn insert2() {
+    fn insert_multiple_letters() {
         let mut trie = Trie::new();
         trie.insert("ab");
         assert!(trie.contains("ab"))
     }
 
     #[test]
-    fn insert3() {
-        let mut trie = Trie::new();
-        trie.insert("abba");
-        assert!(trie.contains("abba"))
-    }
-
-    #[test]
-    fn insert4() {
+    fn insert_contains_no_subset() {
         let mut trie = Trie::new();
         trie.insert("abba");
         assert!(!trie.contains("ab"))
+    }
+    #[test]
+    fn insert_empty() {
+        let mut trie = Trie::new();
+        trie.insert("");
+        assert_eq!(trie.into_iter().next(), None);
     }
 
     #[test]
@@ -328,9 +344,10 @@ mod tests {
         trie.insert("abba");
         trie.insert("abba");
         assert!(trie.contains("abba"));
+        assert_eq!(trie.into_iter().count(), 1, "The trie should only contain one word")
     }
     #[test]
-    fn insert_multiple_2() {
+    fn insert_multiple_compound() {
         let mut trie = Trie::new();
         trie.insert("abba");
         trie.insert("ab");
@@ -339,7 +356,7 @@ mod tests {
     }
 
     #[test]
-    fn completions1() {
+    fn completions_compound_multiple_match() {
         let mut trie = Trie::new();
         trie.insert("abba");
         trie.insert("ab");
@@ -348,9 +365,18 @@ mod tests {
         assert_eq!(completions[0], "ab".to_string());
         assert_eq!(completions[1], "abba".to_string());
     }
+    #[test]
+    fn completions_compound_single_match() {
+        let mut trie = Trie::new();
+        trie.insert("abba");
+        trie.insert("ab");
+        let completions = trie.get_completions("abb");
+        assert_eq!(completions.len(), 1);
+        assert_eq!(completions[0], "abba".to_string());
+    }
 
     #[test]
-    fn completions2() {
+    fn completions_no_match() {
         let mut trie = Trie::new();
         trie.insert("abba");
         trie.insert("ab");
@@ -418,56 +444,56 @@ mod tests {
     }
 
     #[test]
-    fn remove1() {
+    fn remove_single_entry() {
         let mut trie: Trie = vec!["hello"].into_iter().collect();
 
         assert!(trie.remove("hello"));
         assert_eq!(trie.into_iter().next(), None)
     }
     #[test]
-    fn remove2() {
+    fn remove_from_set_of_two() {
         let mut trie: Trie = vec!["hello", "there"].into_iter().collect();
 
         assert!(trie.remove("hello"));
         assert_eq!(trie.into_iter().next(), Some("there".to_string()))
     }
     #[test]
-    fn remove3() {
+    fn remove_shorter_compound() {
         let mut trie: Trie = vec!["hello", "he"].into_iter().collect();
 
         assert!(trie.remove("he"));
         assert_eq!(trie.into_iter().next(), Some("hello".to_string()))
     }
     #[test]
-    fn remove4() {
+    fn remove_longer_compound() {
         let mut trie: Trie = vec!["hello", "he"].into_iter().collect();
 
         assert!(trie.remove("hello"));
         assert_eq!(trie.into_iter().next(), Some("he".to_string()))
     }
     #[test]
-    fn remove5() {
+    fn remove_single_letter() {
         let mut trie: Trie = vec!["a"].into_iter().collect();
 
         assert!(trie.remove("a"));
         assert_eq!(trie.into_iter().next(), None)
     }
     #[test]
-    fn remove6() {
+    fn remove_shorter_compound_single_letter() {
         let mut trie: Trie = vec!["a", "ab"].into_iter().collect();
 
         assert!(trie.remove("a"));
         assert_eq!(trie.into_iter().next(), Some("ab".to_string()))
     }
     #[test]
-    fn remove7() {
+    fn remove_longer_compound_single_letter() {
         let mut trie: Trie = vec!["a", "ab"].into_iter().collect();
 
         assert!(trie.remove("ab"));
         assert_eq!(trie.into_iter().next(), Some("a".to_string()))
     }
     #[test]
-    fn remove8() {
+    fn remove_non_existant_entry() {
         let mut trie: Trie = vec!["a", "ab"].into_iter().collect();
 
         assert!(!trie.remove("abc"));
@@ -478,11 +504,19 @@ mod tests {
     }
 
     #[test]
-    fn remove9() {
+    fn remove_never_present() {
         let mut trie: Trie = Trie::new();
 
-        assert!(!trie.remove("a"));
+        assert!(!trie.remove("a"), "The trie should indicate that the trie did not contain the value to begin with");
         let mut iter = trie.into_iter();
         assert_eq!(iter.next(), None)
+    }
+    #[test]
+    fn remove_twice() {
+        let mut trie: Trie = Trie::new();
+        trie.insert("a");
+
+        assert!(trie.remove("a"), "The trie should indicate that the trie removed the value");
+        assert!(!trie.remove("a"), "The trie should indicate that the trie no longer contains the value");
     }
 }
