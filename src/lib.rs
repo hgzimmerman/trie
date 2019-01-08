@@ -85,7 +85,7 @@ impl TrieNode {
 }
 
 impl Trie {
-    /// Creates a new Trie with no elements.
+    /// Creates a new, empty Trie.
     pub fn new() -> Self {
         Trie {
             children: Vec::new(),
@@ -119,7 +119,8 @@ impl Trie {
 
         for character in chars {
             if let Some(node) = current_node {
-                // Todo, this is a hacky way to elide the lifetime constraint wrt the iter_mut(), and last_mut() + push() here.
+                // This is a hacky way to elide the lifetime constraint wrt
+                // the iter_mut(), and last_mut() + push() here.
                 let can_be_found = node
                     .children
                     .iter()
@@ -170,7 +171,7 @@ impl Trie {
         }
     }
 
-    /// Given a string whose characters make up a linear subset of strings in the trie,
+    /// Given a string whose characters make up an ordered subset of characters in string(s) present in the trie,
     /// this function will return a Vec<String> of the possible completed strings.
     pub fn get_completions<T: AsRef<str>>(&self, word: T) -> Vec<String> {
         let string = word.as_ref();
