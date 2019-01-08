@@ -3,5 +3,12 @@ name = "trie"
 version = "0.1.0"
 authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 edition = "2018"
+publish = false #At the time being, I'm not intent on publishing this.
+license = "MIT"
+
 
 [dependencies]
+
+[[example]]
+name = "dictionary"
+path = "examples/dictionary/main.rs"
